@@ -18,6 +18,12 @@
 */
 package org.apache.cordova.device;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -115,6 +121,16 @@ public class Device extends CordovaPlugin {
      * @return
      */
     public String getUuid() {
+
+        File fileUUID = new File(cordova.getActivity().getApplicationContext().getFilesDir(), "UUID");
+
+        String uuid = readUuidFromFile(fileUUID);
+
+        if (uuid == null || "".equals(uuid)) {
+            uuid = UUID.randomUUID().toString();
+            writeUuidFile(fileUUID, uuid);
+        }
+        /*
         SharedPreferences preferences = cordova.getActivity().getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor  = preferences.edit();
@@ -124,7 +140,58 @@ public class Device extends CordovaPlugin {
             editor.putString("UUID", uuid);
             editor.commit();
         }
+        */
+
         return uuid;
+    }
+
+    protected String readUuidFromFile(File fileUUID) {
+        if (!fileUUID.exists()) {
+            return "";
+        }
+        RandomAccessFile file = null;
+        try {
+            file = new RandomAccessFile(fileUUID, "r");
+
+            byte[] buffer = new byte[(int)file.length()];
+            file.readFully(buffer);
+            return new String(buffer);
+        } catch (FileNotFoundException e) {
+            return "";
+        } catch (IOException e) {
+            return "";
+        } finally {
+            if (file != null) {
+                try {
+                    file.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    protected void writeUuidFile(File fileUUID, String uuid) {
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(fileUUID);
+            out.write(uuid.getBytes());
+            out.flush();
+            out.close();
+            out = null;
+        } catch (FileNotFoundException e) {
+            return;
+        } catch (IOException e) {
+            return;
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public String getModel() {
