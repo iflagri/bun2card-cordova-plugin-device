@@ -44,6 +44,7 @@ function Device() {
     this.manufacturer = null;
     this.isVirtual = null;
     this.serial = null;
+    this.guid = null;
 
     var me = this;
 
@@ -56,6 +57,7 @@ function Device() {
             me.platform = info.platform;
             me.version = info.version;
             me.uuid = info.uuid;
+            me.guid = info.guid;
             me.cordova = buildLabel;
             me.model = info.model;
             me.isVirtual = info.isVirtual;
@@ -80,4 +82,20 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
     exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
 };
 
+/**
+ * set guid
+ *
+ * @param {Function} successCallback The function to call when the heading data is available
+ * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
+ */
+Device.prototype.setGuid = function(guid) {
+
+    argscheck.checkArgs('SFF', 'Device.setGuid', arguments);
+    exec(function(guid) {
+        me.guid = guid;
+    }, function() {
+    }, "Device", "setGuid", [guid]);
+};
+
 module.exports = new Device();
+

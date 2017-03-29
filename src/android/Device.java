@@ -19,7 +19,6 @@
 package org.apache.cordova.device;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,20 +36,23 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
 
 public class Device extends CordovaPlugin {
     public static final String TAG = "Device";
 
     public static String platform;                            // Device OS
     public static String uuid;                                // Device UUID
+    public static String guid;
 
-    private static final String PREFS_KEY = "bun2card_device";
+    private static final String USER_PROFILE = "USER_PROFILE";
 
     private static final String ANDROID_PLATFORM = "Android";
     private static final String AMAZON_PLATFORM = "amazon-fireos";
     private static final String AMAZON_DEVICE = "Amazon";
+
+    private static final String KEY_UUID = "UUID";
+    private static final String KEY_GUID = "GUID";
+
 
     /**
      * Constructor.
@@ -68,6 +70,7 @@ public class Device extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         Device.uuid = getUuid();
+        Device.guid = getGuid();
     }
 
     /**
@@ -82,6 +85,7 @@ public class Device extends CordovaPlugin {
         if ("getDeviceInfo".equals(action)) {
             JSONObject r = new JSONObject();
             r.put("uuid", Device.uuid);
+            r.put("guid", Device.guid);
             r.put("version", this.getOSVersion());
             r.put("platform", this.getPlatform());
             r.put("model", this.getModel());
@@ -89,6 +93,12 @@ public class Device extends CordovaPlugin {
 	        r.put("isVirtual", this.isVirtual());
             r.put("serial", this.getSerialNumber());
             callbackContext.success(r);
+        } else if ("setGuid".equals(action)) {
+            if (args.length() > 0) {
+                String guid = args.getString(0);
+                setGuid(guid);
+                callbackContext.success(guid);
+            }
         }
         else {
             return false;
@@ -122,27 +132,51 @@ public class Device extends CordovaPlugin {
      */
     public String getUuid() {
 
-        File fileUUID = new File(cordova.getActivity().getApplicationContext().getFilesDir(), "UUID");
-
-        String uuid = readUuidFromFile(fileUUID);
-
-        if (uuid == null || "".equals(uuid)) {
-            uuid = UUID.randomUUID().toString();
-            writeUuidFile(fileUUID, uuid);
-        }
-        /*
-        SharedPreferences preferences = cordova.getActivity().getSharedPreferences(PREFS_KEY, Context.MODE_PRIVATE);
+        SharedPreferences preferences = cordova.getActivity().getSharedPreferences(USER_PROFILE, Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor  = preferences.edit();
-        String uuid = preferences.getString("UUID", "");
+        String uuid = preferences.getString(KEY_UUID, "");
         if (uuid == null || "".equals(uuid)) {
             uuid = UUID.randomUUID().toString();
-            editor.putString("UUID", uuid);
+            editor.putString(KEY_UUID, uuid);
             editor.commit();
         }
-        */
-
         return uuid;
+    }
+
+    /**
+     * Get the device's Universally Unique Identifier (UUID).
+     *
+     * @return
+     */
+    public String getGuid() {
+
+        SharedPreferences preferences = cordova.getActivity().getSharedPreferences(USER_PROFILE, Context.MODE_PRIVATE);
+        String guid = preferences.getString(KEY_GUID, "");
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        SharedPreferences preferences = cordova.getActivity().getSharedPreferences(USER_PROFILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor  = preferences.edit();
+        editor.putString(KEY_GUID, guid);
+        // editor.putString(KEY_UUID, guid);
+        editor.commit();
+        Device.guid = guid;
+        // Device.uuid = guid;
+    }
+
+    protected String getStringResource(String group, String key) {
+        Context context = this.cordova.getActivity().getApplicationContext();
+        try {
+            int id = context.getResources().getIdentifier(key, group, context.getPackageName());
+            if (id == 0) {
+                return "";
+            }
+            return context.getResources().getString(id);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     protected String readUuidFromFile(File fileUUID) {
@@ -166,8 +200,7 @@ public class Device extends CordovaPlugin {
                     file.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-            }
+                }}
         }
     }
 

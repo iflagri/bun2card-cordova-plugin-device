@@ -24,6 +24,9 @@
 #import <Cordova/CDV.h>
 #import "CDVDevice.h"
 
+#define kMCDAuthIdentifier @"MCDGUID"
+#define kCDVAppIdentifier @"CDVUUID"
+
 @implementation UIDevice (ModelVersion)
 
 - (NSString*)modelVersion
@@ -49,11 +52,10 @@
 - (NSString*)uniqueAppInstanceIdentifier:(UIDevice*)device
 {
     NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-    static NSString* UUID_KEY = @"CDVUUID";
     
     // Check user defaults first to maintain backwards compaitibility with previous versions
     // which didn't user identifierForVendor
-    NSString* app_uuid = [userDefaults stringForKey:UUID_KEY];
+    NSString* app_uuid = [userDefaults stringForKey:kCDVAppIdentifier];
     if (app_uuid == nil) {
         if ([device respondsToSelector:@selector(identifierForVendor)]) {
             app_uuid = [[device identifierForVendor] UUIDString];
@@ -63,7 +65,7 @@
             CFRelease(uuid);
         }
 
-        [userDefaults setObject:app_uuid forKey:UUID_KEY];
+        [userDefaults setObject:app_uuid forKey:kCDVAppIdentifier];
         [userDefaults synchronize];
     }
     
@@ -78,6 +80,24 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)setGuid:(CDVInvokedUrlCommand*)command
+{
+    NSString *guid = [command argumentAtIndex:0];
+    if (guid.length == 0) {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No GUID"];
+        [self.commandDelegate sendPluginResult:result  callbackId:command.callbackId];
+        return;
+    }
+    
+    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
+    [userDefaults setObject:guid forKey:kMCDAuthIdentifier];
+    [userDefaults synchronize];
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:guid];
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (NSDictionary*)deviceProperties
 {
     UIDevice* device = [UIDevice currentDevice];
@@ -88,10 +108,26 @@
              @"platform": @"iOS",
              @"version": [device systemVersion],
              @"uuid": [self uniqueAppInstanceIdentifier:device],
+             @"guid" : [self authIdentifier:device],
              @"cordova": [[self class] cordovaVersion],
              @"isVirtual": @([self isVirtual])
              };
 }
+
+- (NSString*) authIdentifier:(UIDevice*)device
+{
+    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
+    
+    // Check user defaults first to maintain backwards compaitibility with previous versions
+    // which didn't user identifierForVendor
+    NSString* auth_guid = [userDefaults stringForKey:kMCDAuthIdentifier];
+    if (auth_guid == nil) {
+        auth_guid = @"";
+    }
+    
+    return auth_guid;
+}
+
 
 + (NSString*)cordovaVersion
 {
