@@ -44,8 +44,7 @@ function Device() {
     this.manufacturer = null;
     this.isVirtual = null;
     this.serial = null;
-    this.guid = null;
-
+  
     var me = this;
 
     channel.onCordovaReady.subscribe(function() {
@@ -57,7 +56,6 @@ function Device() {
             me.platform = info.platform;
             me.version = info.version;
             me.uuid = info.uuid;
-            me.guid = info.guid;
             me.cordova = buildLabel;
             me.model = info.model;
             me.isVirtual = info.isVirtual;
@@ -88,14 +86,14 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
  * @param {Function} successCallback The function to call when the heading data is available
  * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
  */
-Device.prototype.setGuid = function(guid) {
+Device.prototype.setUuid = function(uuid) {
 
-    argscheck.checkArgs('SFF', 'Device.setGuid', arguments);
-    exec(function(guid) {
-        me.guid = guid;
-    }, function() {
-    }, "Device", "setGuid", [guid]);
+    argscheck.checkArgs('SFF', 'Device.setUuid', arguments);
+    exec(function(uuid) {
+        me.uuid = uuid;
+    }, function(error) {
+        utils.alert("[ERROR] device.setUuid: " + e);
+    }, "Device", "setUuid", [uuid]);
 };
 
 module.exports = new Device();
-

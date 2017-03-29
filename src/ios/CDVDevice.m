@@ -24,7 +24,6 @@
 #import <Cordova/CDV.h>
 #import "CDVDevice.h"
 
-#define kMCDAuthIdentifier @"MCDGUID"
 #define kCDVAppIdentifier @"CDVUUID"
 
 @implementation UIDevice (ModelVersion)
@@ -80,20 +79,20 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)setGuid:(CDVInvokedUrlCommand*)command
+- (void)setUuid:(CDVInvokedUrlCommand*)command
 {
-    NSString *guid = [command argumentAtIndex:0];
-    if (guid.length == 0) {
-        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No GUID"];
+    NSString *uuid = [command argumentAtIndex:0];
+    if (uuid.length == 0) {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No argument uuid"];
         [self.commandDelegate sendPluginResult:result  callbackId:command.callbackId];
         return;
     }
     
     NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults setObject:guid forKey:kMCDAuthIdentifier];
+    [userDefaults setObject:uuid forKey:kCDVAppIdentifier];
     [userDefaults synchronize];
     
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:guid];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:uuid];
     
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -108,24 +107,9 @@
              @"platform": @"iOS",
              @"version": [device systemVersion],
              @"uuid": [self uniqueAppInstanceIdentifier:device],
-             @"guid" : [self authIdentifier:device],
              @"cordova": [[self class] cordovaVersion],
              @"isVirtual": @([self isVirtual])
              };
-}
-
-- (NSString*) authIdentifier:(UIDevice*)device
-{
-    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-    
-    // Check user defaults first to maintain backwards compaitibility with previous versions
-    // which didn't user identifierForVendor
-    NSString* auth_guid = [userDefaults stringForKey:kMCDAuthIdentifier];
-    if (auth_guid == nil) {
-        auth_guid = @"";
-    }
-    
-    return auth_guid;
 }
 
 

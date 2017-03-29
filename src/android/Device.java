@@ -42,7 +42,6 @@ public class Device extends CordovaPlugin {
 
     public static String platform;                            // Device OS
     public static String uuid;                                // Device UUID
-    public static String guid;
 
     private static final String USER_PROFILE = "USER_PROFILE";
 
@@ -51,7 +50,6 @@ public class Device extends CordovaPlugin {
     private static final String AMAZON_DEVICE = "Amazon";
 
     private static final String KEY_UUID = "UUID";
-    private static final String KEY_GUID = "GUID";
 
 
     /**
@@ -70,7 +68,6 @@ public class Device extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         Device.uuid = getUuid();
-        Device.guid = getGuid();
     }
 
     /**
@@ -85,7 +82,6 @@ public class Device extends CordovaPlugin {
         if ("getDeviceInfo".equals(action)) {
             JSONObject r = new JSONObject();
             r.put("uuid", Device.uuid);
-            r.put("guid", Device.guid);
             r.put("version", this.getOSVersion());
             r.put("platform", this.getPlatform());
             r.put("model", this.getModel());
@@ -93,11 +89,11 @@ public class Device extends CordovaPlugin {
 	        r.put("isVirtual", this.isVirtual());
             r.put("serial", this.getSerialNumber());
             callbackContext.success(r);
-        } else if ("setGuid".equals(action)) {
+        } else if ("setUuid".equals(action)) {
             if (args.length() > 0) {
-                String guid = args.getString(0);
-                setGuid(guid);
-                callbackContext.success(guid);
+                String uuid = args.getString(0);
+                setUuid(uuid);
+                callbackContext.success(uuid);
             }
         }
         else {
@@ -144,25 +140,13 @@ public class Device extends CordovaPlugin {
         return uuid;
     }
 
-    /**
-     * Get the device's Universally Unique Identifier (UUID).
-     *
-     * @return
-     */
-    public String getGuid() {
-
-        SharedPreferences preferences = cordova.getActivity().getSharedPreferences(USER_PROFILE, Context.MODE_PRIVATE);
-        String guid = preferences.getString(KEY_GUID, "");
-        return guid;
-    }
-
-    public void setGuid(String guid) {
+    public void setUuid(String uuid) {
         SharedPreferences preferences = cordova.getActivity().getSharedPreferences(USER_PROFILE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor  = preferences.edit();
-        editor.putString(KEY_GUID, guid);
+        editor.putString(KEY_UUID, uuid);
         // editor.putString(KEY_UUID, guid);
         editor.commit();
-        Device.guid = guid;
+        Device.uuid = uuid;
         // Device.uuid = guid;
     }
 
