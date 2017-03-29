@@ -89,6 +89,7 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
 Device.prototype.setUuid = function(uuid) {
 
     argscheck.checkArgs('SFF', 'Device.setUuid', arguments);
+    var me = this;
     exec(function(uuid) {
         me.uuid = uuid;
     }, function(error) {
