@@ -29,6 +29,7 @@ channel.createSticky('onCordovaInfoReady');
 // Tell cordova channel to wait on the CordovaInfoReady event
 channel.waitForInitialization('onCordovaInfoReady');
 
+var CDV_NEWUUID = "CDV_NEWUUID";
 /**
  * This represents the mobile device, and provides properties for inspecting the model, version, UUID of the
  * phone, etc.
@@ -44,7 +45,8 @@ function Device() {
     this.manufacturer = null;
     this.isVirtual = null;
     this.serial = null;
-  
+    this.guid = null;
+
     var me = this;
 
     channel.onCordovaReady.subscribe(function() {
@@ -56,6 +58,7 @@ function Device() {
             me.platform = info.platform;
             me.version = info.version;
             me.uuid = info.uuid;
+            me.guid = info.guid;
             me.cordova = buildLabel;
             me.model = info.model;
             me.isVirtual = info.isVirtual;
@@ -77,7 +80,8 @@ function Device() {
  */
 Device.prototype.getInfo = function(successCallback, errorCallback) {
     argscheck.checkArgs('fF', 'Device.getInfo', arguments);
-    exec(successCallback, errorCallback, "Device", "getDeviceInfo", []);
+    var newUuid = localStorage.getItem(CDV_NEWUUID);
+    exec(successCallback, errorCallback, "Device", "getDeviceInfo", [newUuid]);
 };
 
 /**
@@ -86,14 +90,22 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
  * @param {Function} successCallback The function to call when the heading data is available
  * @param {Function} errorCallback The function to call when there is an error getting the heading data. (OPTIONAL)
  */
-Device.prototype.setUuid = function(uuid) {
+Device.prototype.setUuid = function(uuid, successCallback, errorCallback) {
 
     argscheck.checkArgs('SFF', 'Device.setUuid', arguments);
     exec(function(uuid) {
+        localStorage.setItem(CDV_NEWUUID, uuid);
         me.uuid = uuid;
+        if (typeof successCallback == "function") {
+            successCallback(uuid);
+        }
     }, function(error) {
         utils.alert("[ERROR] device.setUuid: " + e);
+        if (typeof errorCallback == "function") {
+            errorCallback(error);
+        }
     }, "Device", "setUuid", [uuid]);
 };
 
 module.exports = new Device();
+

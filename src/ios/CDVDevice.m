@@ -73,6 +73,13 @@
 
 - (void)getDeviceInfo:(CDVInvokedUrlCommand*)command
 {
+    NSString *newUuid = [command argumentAtIndex:0];
+    NSString *uuid = [self uniqueAppInstanceIdentifier:[UIDevice currentDevice]];
+    
+    if (newUuid.length && ![newUuid isEqualToString:uuid]) {
+        [self setUuidWithString:newUuid];
+    }
+    
     NSDictionary* deviceProperties = [self deviceProperties];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:deviceProperties];
 
@@ -82,19 +89,24 @@
 - (void)setUuid:(CDVInvokedUrlCommand*)command
 {
     NSString *uuid = [command argumentAtIndex:0];
-    if (uuid.length == 0) {
+    if (![self setUuidWithString:uuid]) {
         CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No argument uuid"];
         [self.commandDelegate sendPluginResult:result  callbackId:command.callbackId];
         return;
     }
     
-    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults setObject:uuid forKey:kCDVAppIdentifier];
-    [userDefaults synchronize];
-    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:uuid];
-    
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (BOOL) setUuidWithString :(NSString *) newUuid {
+    if (!newUuid.length) {
+        return NO;
+    }
+    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
+    [userDefaults setObject:newUuid forKey:kCDVAppIdentifier];
+    [userDefaults synchronize];
+    return YES;
 }
 
 - (NSDictionary*)deviceProperties
