@@ -83,7 +83,7 @@ public class Device extends CordovaPlugin {
             JSONObject r = new JSONObject();
             if (args.length() > 0) {
                 String newUuid = args.getString(0);
-                if (newUuid != null && newUuid.length() > 0 && newUuid != Device.uuid) {
+                if (newUuid != null && newUuid.length() > 10 && newUuid != Device.uuid) {
                     this.setUuid(newUuid);
                 }
             }
