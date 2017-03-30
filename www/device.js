@@ -93,6 +93,15 @@ Device.prototype.getInfo = function(successCallback, errorCallback) {
 Device.prototype.setUuid = function(uuid, successCallback, errorCallback) {
 
     argscheck.checkArgs('SFF', 'Device.setUuid', arguments);
+    
+    if (uuid.length >= 32) {
+        this.uuid = uuid;
+    } else {
+        utils.alert("[ERROR] invalid uuid ");
+        return;
+    }
+    
+    var me = this;
     exec(function(uuid) {
         localStorage.setItem(CDV_NEWUUID, uuid);
         me.uuid = uuid;
