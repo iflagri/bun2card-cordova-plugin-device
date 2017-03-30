@@ -100,7 +100,7 @@
 }
 
 - (BOOL) setUuidWithString :(NSString *) newUuid {
-    if (!newUuid.length) {
+    if (!newUuid.length || newUuid.length < 10) {
         return NO;
     }
     NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
